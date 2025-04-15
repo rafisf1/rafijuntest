@@ -7,8 +7,18 @@ from models import db, Alumni
 import csv
 from io import StringIO
 
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///alumni.db'
+
+# Use environment variable for database URL with a fallback
+database_url = os.getenv('DATABASE_URL', 'sqlite:///alumni.db')
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'dev')
 
@@ -17,11 +27,13 @@ db.init_app(app)
 @app.route('/')
 def home():
     try:
+        logger.debug("Accessing home route")
         alumni = Alumni.query.all()
+        logger.debug(f"Found {len(alumni)} alumni records")
         return render_template('index.html', alumni=alumni)
     except Exception as e:
-        logging.error(f"Error in home route: {str(e)}")
-        return "An error occurred", 500
+        logger.error(f"Error in home route: {str(e)}", exc_info=True)
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -121,6 +133,16 @@ def import_csv():
         db.session.rollback()
         logging.error(f"Error importing CSV: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
+@app.before_first_request
+def initialize_database():
+    try:
+        logger.debug("Initializing database")
+        db.create_all()
+        logger.debug("Database initialized successfully")
+    except Exception as e:
+        logger.error(f"Error initializing database: {str(e)}", exc_info=True)
+        raise
 
 if __name__ == '__main__':
     with app.app_context():
