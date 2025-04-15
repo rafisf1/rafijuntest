@@ -65,16 +65,23 @@ function App() {
         );
         const ethData = await ethResponse.json();
 
+        // Format dates for both datasets
+        const formatDate = (timestamp) => {
+          const date = new Date(timestamp);
+          const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          return `${months[date.getMonth()]} ${date.getDate()}`;
+        };
+
         // Process BTC data
-        const btcPrices = btcData.prices.map(price => ({
-          x: new Date(price[0]).toLocaleDateString(),
-          y: price[1]
+        const btcPrices = btcData.prices.map(([timestamp, price]) => ({
+          x: formatDate(timestamp),
+          y: price
         }));
 
         // Process ETH data
-        const ethPrices = ethData.prices.map(price => ({
-          x: new Date(price[0]).toLocaleDateString(),
-          y: price[1]
+        const ethPrices = ethData.prices.map(([timestamp, price]) => ({
+          x: formatDate(timestamp),
+          y: price
         }));
 
         setBtcData({
@@ -83,7 +90,9 @@ function App() {
             label: 'Bitcoin Price (USD)',
             data: btcPrices.map(price => price.y),
             borderColor: 'rgb(247, 147, 26)',
-            tension: 0.1
+            backgroundColor: 'rgba(247, 147, 26, 0.1)',
+            fill: true,
+            tension: 0.4
           }]
         });
 
@@ -93,7 +102,9 @@ function App() {
             label: 'Ethereum Price (USD)',
             data: ethPrices.map(price => price.y),
             borderColor: 'rgb(98, 126, 234)',
-            tension: 0.1
+            backgroundColor: 'rgba(98, 126, 234, 0.1)',
+            fill: true,
+            tension: 0.4
           }]
         });
       } catch (error) {
@@ -102,6 +113,9 @@ function App() {
     };
 
     fetchChartData();
+    // Fetch new data every 5 minutes
+    const interval = setInterval(fetchChartData, 300000);
+    return () => clearInterval(interval);
   }, []);
 
   const chartOptions = {
@@ -117,7 +131,12 @@ function App() {
     },
     scales: {
       y: {
-        beginAtZero: false
+        beginAtZero: false,
+        ticks: {
+          callback: function(value) {
+            return '$' + value.toLocaleString();
+          }
+        }
       }
     }
   };
