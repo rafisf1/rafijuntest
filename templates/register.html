@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - LMU Alumni Network</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-crimson-700 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center">
+                <img src="https://www.lmu.edu/media/lmu2015/sites/brand/images/logos/LMULogo_Gold_RGB.png" alt="LMU Logo" class="h-12 mr-4">
+                <h1 class="text-2xl font-bold">LMU Alumni Network</h1>
+            </div>
+            <div>
+                <a href="/" class="text-white hover:text-gray-200">Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-2xl mx-auto">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-bold mb-6">Register as LMU Alumni</h2>
+                <form id="registrationForm" class="space-y-4">
+                    <div>
+                        <label for="name" class="block text-gray-700 mb-2">Full Name</label>
+                        <input type="text" id="name" name="name" required
+                               class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-crimson-500">
+                    </div>
+
+                    <div>
+                        <label for="graduation_year" class="block text-gray-700 mb-2">Graduation Year</label>
+                        <input type="number" id="graduation_year" name="graduation_year" required min="1900" max="2024"
+                               class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-crimson-500">
+                    </div>
+
+                    <div>
+                        <label for="current_role" class="block text-gray-700 mb-2">Current Role/Position</label>
+                        <input type="text" id="current_role" name="current_role" required
+                               class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-crimson-500">
+                    </div>
+
+                    <div>
+                        <label for="company" class="block text-gray-700 mb-2">Company/Organization</label>
+                        <input type="text" id="company" name="company" required
+                               class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-crimson-500">
+                    </div>
+
+                    <div>
+                        <label for="industry" class="block text-gray-700 mb-2">Industry</label>
+                        <select id="industry" name="industry" required
+                                class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-crimson-500">
+                            <option value="">Select Industry</option>
+                            <option value="Technology">Technology</option>
+                            <option value="Finance">Finance</option>
+                            <option value="Healthcare">Healthcare</option>
+                            <option value="Education">Education</option>
+                            <option value="Entertainment">Entertainment</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Consulting">Consulting</option>
+                            <option value="Non-Profit">Non-Profit</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="email" class="block text-gray-700 mb-2">Email (Optional)</label>
+                        <input type="email" id="email" name="email"
+                               class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-crimson-500">
+                        <p class="text-sm text-gray-500 mt-1">Your email will not be publicly displayed</p>
+                    </div>
+
+                    <div>
+                        <button type="submit" 
+                                class="w-full bg-crimson-700 text-white px-6 py-3 rounded-lg hover:bg-crimson-800 transition-colors">
+                            Register
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('registrationForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('name').value,
+                graduation_year: parseInt(document.getElementById('graduation_year').value),
+                current_role: document.getElementById('current_role').value,
+                company: document.getElementById('company').value,
+                industry: document.getElementById('industry').value,
+                email: document.getElementById('email').value
+            };
+
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData),
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert('Registration successful! Thank you for joining the LMU Alumni Network.');
+                    window.location.href = '/';
+                } else {
+                    alert('Error: ' + (result.message || 'Registration failed. Please try again.'));
+                }
+            } catch (error) {
+                alert('Error submitting form. Please try again.');
+            }
+        });
+    </script>
+
+    <style>
+        .bg-crimson-700 {
+            background-color: #990000;
+        }
+        .bg-crimson-800 {
+            background-color: #800000;
+        }
+        .focus\:ring-crimson-500:focus {
+            --tw-ring-color: rgba(153, 0, 0, 0.5);
+        }
+    </style>
+</body>
+</html> 

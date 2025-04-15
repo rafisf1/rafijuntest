@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LMU Alumni Network - Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-8">LMU Alumni Network Administration</h1>
+
+        <!-- Data Import/Export Section -->
+        <div class="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Data Management</h2>
+            
+            <!-- Export Button -->
+            <div class="mb-6">
+                <h3 class="text-lg font-medium mb-2">Export Data</h3>
+                <a href="/api/export-csv" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                    Export to CSV
+                </a>
+            </div>
+
+            <!-- Import Form -->
+            <div class="mb-6">
+                <h3 class="text-lg font-medium mb-2">Import Data</h3>
+                <form id="importForm" class="space-y-4">
+                    <div>
+                        <input type="file" 
+                               id="csvFile" 
+                               accept=".csv"
+                               class="block w-full text-sm text-gray-500
+                                      file:mr-4 file:py-2 file:px-4
+                                      file:rounded-full file:border-0
+                                      file:text-sm file:font-semibold
+                                      file:bg-blue-50 file:text-blue-700
+                                      hover:file:bg-blue-100"/>
+                    </div>
+                    <button type="submit" 
+                            class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+                        Import CSV
+                    </button>
+                </form>
+                <div id="importStatus" class="mt-2 text-sm"></div>
+            </div>
+        </div>
+
+        <!-- Alumni List -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">Registered Alumni</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full table-auto">
+                    <thead>
+                        <tr class="bg-gray-50">
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Graduation Year</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Major</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Position</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for alum in alumni %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ alum.name }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ alum.graduation_year }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ alum.major }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ alum.current_position }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ alum.current_company }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('importForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const statusDiv = document.getElementById('importStatus');
+            const fileInput = document.getElementById('csvFile');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                statusDiv.textContent = 'Please select a file';
+                statusDiv.className = 'mt-2 text-sm text-red-600';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            statusDiv.textContent = 'Importing...';
+            statusDiv.className = 'mt-2 text-sm text-blue-600';
+
+            try {
+                const response = await fetch('/api/import-csv', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    statusDiv.textContent = result.message;
+                    statusDiv.className = 'mt-2 text-sm text-green-600';
+                    // Reload the page to show updated data
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    statusDiv.textContent = result.error || 'Import failed';
+                    statusDiv.className = 'mt-2 text-sm text-red-600';
+                }
+            } catch (error) {
+                statusDiv.textContent = 'Error: ' + error.message;
+                statusDiv.className = 'mt-2 text-sm text-red-600';
+            }
+        });
+    </script>
+</body>
+</html> 

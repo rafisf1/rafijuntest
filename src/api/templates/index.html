@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LA Real Estate Predictor</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-2xl mx-auto">
+            <h1 class="text-3xl font-bold text-center mb-8">LA Real Estate Predictor</h1>
+            
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <form id="predictionForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Square Feet</label>
+                        <input type="number" id="sqft" name="sqft" required
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Bedrooms</label>
+                        <input type="number" id="bedrooms" name="bedrooms" required
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Bathrooms</label>
+                        <input type="number" id="bathrooms" name="bathrooms" step="0.5" required
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Year Built</label>
+                        <input type="number" id="year_built" name="year_built" required
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Zipcode</label>
+                        <input type="text" id="zipcode" name="zipcode" required
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    
+                    <button type="submit"
+                            class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        Get Prediction
+                    </button>
+                </form>
+                
+                <div id="result" class="mt-6 hidden">
+                    <h2 class="text-xl font-semibold mb-4">Prediction Results</h2>
+                    <div class="bg-gray-50 rounded-md p-4">
+                        <p class="text-lg">Predicted Price: <span id="predictedPrice" class="font-bold text-green-600"></span></p>
+                        <p class="text-lg">Predicted Days on Market: <span id="predictedDom" class="font-bold text-green-600"></span></p>
+                    </div>
+                </div>
+                
+                <div id="error" class="mt-6 hidden">
+                    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                        <p id="errorMessage"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Hide previous results and errors
+            document.getElementById('result').classList.add('hidden');
+            document.getElementById('error').classList.add('hidden');
+            
+            const formData = {
+                sqft: parseInt(document.getElementById('sqft').value),
+                bedrooms: parseInt(document.getElementById('bedrooms').value),
+                bathrooms: parseFloat(document.getElementById('bathrooms').value),
+                year_built: parseInt(document.getElementById('year_built').value),
+                zipcode: document.getElementById('zipcode').value
+            };
+            
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.detail || 'An error occurred');
+                }
+                
+                // Format the price with commas and dollar sign
+                const formattedPrice = new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'USD'
+                }).format(data.predicted_price);
+                
+                // Display results
+                document.getElementById('predictedPrice').textContent = formattedPrice;
+                document.getElementById('predictedDom').textContent = `${Math.round(data.predicted_dom)} days`;
+                document.getElementById('result').classList.remove('hidden');
+                
+            } catch (error) {
+                document.getElementById('errorMessage').textContent = error.message;
+                document.getElementById('error').classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html> 

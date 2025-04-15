@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LMU Alumni Network</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-crimson-700 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center">
+                <img src="https://www.lmu.edu/media/lmu2015/sites/brand/images/logos/LMULogo_Gold_RGB.png" alt="LMU Logo" class="h-12 mr-4">
+                <h1 class="text-2xl font-bold">LMU Alumni Network</h1>
+            </div>
+            <div>
+                <a href="/register" class="text-white hover:text-gray-200 bg-crimson-800 px-4 py-2 rounded-lg">Register as Alumni</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- Search Section -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                <h2 class="text-2xl font-bold mb-4">Search Alumni</h2>
+                <div class="flex gap-4">
+                    <input type="text" id="searchInput" 
+                           class="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-crimson-500"
+                           placeholder="Search by name, role, company, or industry...">
+                    <button onclick="searchAlumni()" 
+                            class="bg-crimson-700 text-white px-6 py-3 rounded-lg hover:bg-crimson-800 transition-colors">
+                        Search
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div id="results" class="space-y-4">
+                <!-- Results will be populated here -->
+            </div>
+
+            <!-- Result Card Template -->
+            <template id="alumni-card-template">
+                <div class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-xl font-semibold name"></h3>
+                            <p class="text-gray-600 role"></p>
+                            <p class="text-gray-600 company"></p>
+                            <p class="text-gray-500 industry"></p>
+                        </div>
+                        <div class="text-gray-500 graduation-year"></div>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <script>
+        async function searchAlumni() {
+            const query = document.getElementById('searchInput').value;
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="text-center py-4">Searching...</div>';
+
+            try {
+                const response = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query }),
+                });
+
+                const data = await response.json();
+                displayResults(data);
+            } catch (error) {
+                resultsDiv.innerHTML = '<div class="text-center py-4 text-red-500">Error searching alumni</div>';
+            }
+        }
+
+        function displayResults(results) {
+            const resultsDiv = document.getElementById('results');
+            const template = document.getElementById('alumni-card-template');
+            
+            if (results.length === 0) {
+                resultsDiv.innerHTML = '<div class="text-center py-4">No results found</div>';
+                return;
+            }
+
+            resultsDiv.innerHTML = '';
+            results.forEach(alumni => {
+                const card = template.content.cloneNode(true);
+                card.querySelector('.name').textContent = alumni.name;
+                card.querySelector('.role').textContent = alumni.current_role;
+                card.querySelector('.company').textContent = alumni.company;
+                card.querySelector('.industry').textContent = alumni.industry;
+                card.querySelector('.graduation-year').textContent = `Class of ${alumni.graduation_year}`;
+                resultsDiv.appendChild(card);
+            });
+        }
+
+        // Enable search on Enter key
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchAlumni();
+            }
+        });
+    </script>
+
+    <style>
+        .bg-crimson-700 {
+            background-color: #990000;
+        }
+        .bg-crimson-800 {
+            background-color: #800000;
+        }
+        .focus\:ring-crimson-500:focus {
+            --tw-ring-color: rgba(153, 0, 0, 0.5);
+        }
+    </style>
+</body>
+</html> 
